@@ -26,7 +26,7 @@ let neo4jApi = require('./src/neo4j_api');
  */
 cassandraApi.init();
 try{
-    let res=cassandraApi.selectPersonsByTimestamp("2",'2018-04-04 21:03:10','2018-04-04 21:03:20').then(result => {
+    let res=cassandraApi.selectPersonsByField("0",'2017-04-04 21:54:10','2019-04-04 21:54:10','Dead','Manager').then(result => {
          console.log(result);
      }).catch(error => {
          console.error(error);

@@ -87,11 +87,22 @@ module.exports = {
             })
         })
     },
-    selectPersonsByTimestamp(id,begin,end){
-        query="select * from log.persons where timestamp>='"+begin+"' AND timestamp<='"+end+"'";
-        if(id!=null){
-            query+="AND id='"+id+"';";
+    selectPersonsByField(id,begin,end,status,position){
+        query="select * from log.persons where id='"+id+"'";
+        //timestamp>='"+begin+"' AND timestamp<='"+end+"'";
+        if(begin!=null){
+            query+=" AND timestamp>='"+begin+"'";
         }
+        if(end!=null){
+            query+=" AND timestamp<='"+end+"'";
+        }
+        if(status!=null){
+            query+=" AND statuschange='"+status+"'";
+        }
+        if(position!=null){
+            query+=" AND position='"+position+"'";
+        }
+        query+=";";
         console.log(query);
         return new Promise((resolve, reject) => {
             client.execute(query, (err, result) => {
