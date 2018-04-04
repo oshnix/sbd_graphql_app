@@ -61,13 +61,42 @@ module.exports = {
     },
 
     selectTop10Persons(id){
-        //query="select * from log.persons where id='"+id+"' limit 10;";
-        query="select * from log.persons";
+        query="select * from log.persons where id='"+id+"' limit 10;";
+        //query="select * from log.persons";
         console.log(query);
         return new Promise((resolve, reject) => {
             client.execute(query, (err, result) => {
                 if(!err){
-                    resolve(result);
+                    resolve(result.rows);
+                } else {
+                    reject(err);
+                }
+            })
+        })
+    },
+    selectTopNPersons(id,N){
+        query="select * from log.persons where id='"+id+"' limit "+N+";";
+        console.log(query);
+        return new Promise((resolve, reject) => {
+            client.execute(query, (err, result) => {
+                if(!err){
+                    resolve(result.rows);
+                } else {
+                    reject(err);
+                }
+            })
+        })
+    },
+    selectPersonsByTimestamp(id,begin,end){
+        query="select * from log.persons where timestamp>='"+begin+"' AND timestamp<='"+end+"'";
+        if(id!=null){
+            query+="AND id='"+id+"';";
+        }
+        console.log(query);
+        return new Promise((resolve, reject) => {
+            client.execute(query, (err, result) => {
+                if(!err){
+                    resolve(result.rows);
                 } else {
                     reject(err);
                 }

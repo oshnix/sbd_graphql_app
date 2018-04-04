@@ -15,13 +15,22 @@ let neo4jApi = require('./src/neo4j_api');
  let res=cassandraApi.insertPersons(ids,bosses,names,surnames,nicks,pos,sal,stats);
 
  removePerson('2');
+
+ let res=cassandraApi.selectTopNPersons("2",1).then(result => {
+         console.log(result);
+     }).catch(error => {
+         console.error(error);
+     })
+
+ let res=cassandraApi.selectPersonsByTimestamp("2",'2018-04-04 21:03:10','2018-04-04 21:03:20')
  */
 cassandraApi.init();
 try{
-    //let res=cassandraApi.selectTop10Persons("2");
-    //console.log(res);
-    let res=cassandraApi.getAllPersons().then();
-    console.log(res);
+    let res=cassandraApi.selectPersonsByTimestamp("2",'2018-04-04 21:03:10','2018-04-04 21:03:20').then(result => {
+         console.log(result);
+     }).catch(error => {
+         console.error(error);
+     })
 }
 catch (e) {
     console.log(e.stack);
