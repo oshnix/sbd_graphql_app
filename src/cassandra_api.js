@@ -1,14 +1,18 @@
 let connection = null;
 const assert = require('assert').strict;
-let cassandra=null;
-let client=null;
+const cassandra = require('cassandra-driver');
+let client = null;
+
 module.exports = {
     init(){
-    cassandra=require('cassandra-driver');
-    client = new cassandra.Client({ contactPoints: ['127.0.0.1'] });
-    client.connect(function (err) {
-        assert.ifError(err);
-    });
+        client = new cassandra.Client({ contactPoints: ['127.0.0.1'] });
+        return new Promise((resolve, reject) => {
+	        client.connect( err => {
+		        if(err) reject(err);
+		        else resolve();
+	        });
+        })
+
     },
     getAllPersons(){
         query="select * from log.persons";
@@ -122,21 +126,21 @@ module.exports = {
         });
         console.log('before query');
         query="select * from log.persons";
-        //var res=null;
-        //client.execute(query, function (err, result) {
-           // return result.rows;
-            //console.log(result.rows);
-        //});
-        //console.log('after query');
-        //console.log('after query');
+        /*var res=null;
+        client.execute(query, function (err, result) {
+           return result.rows;
+            console.log(result.rows);
+        });
+        console.log('after query');
+        console.log('after query');
 
-        //var authProvider = new cassandra.auth.PlainTextAuthProvider('atepaevm', 'root');
-        //console.log(authProvider);
-        //Set the auth provider in the clientOptions when creating the Client instance authProvider: authProvider,
-        //const client = new cassandra.Client({ contactPoints: ['127.0.0.1'], keyspace: 'log' });
-       //console.log(client);
-        //query="select * from log.persons";
-        //return await client.execute(query);
+        var authProvider = new cassandra.auth.PlainTextAuthProvider('atepaevm', 'root');
+        console.log(authProvider);
+        Set the auth provider in the clientOptions when creating the Client instance authProvider: authProvider,
+        const client = new cassandra.Client({ contactPoints: ['127.0.0.1'], keyspace: 'log' });
+       console.log(client);
+        query="select * from log.persons";
+        return await client.execute(query);*/
 
     },
     returnCountry(){
