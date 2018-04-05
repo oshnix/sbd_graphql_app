@@ -27,6 +27,21 @@ module.exports = {
         return "insert into log.persons (ID,FirstName,LastName,NickName,StatusChange,Salary, Position,bossId, timestamp)"+
             " values('"+id+"','"+firstName+"','"+lastName+"','"+nickname+"','"+statusChange+"',"+salary+",'"+position+"','"+bossId+"',toTimestamp(now()));";
     },
+    //name, govermentForm,population,HDI
+    createInsertCountryStatement(name, govermentForm,population,HDI){
+        return "insert into log.countries (name, govermentForm, population,hpi,timestamp)"+
+            " values('"+name+"','"+govermentForm+"','"+population+",'"+HDI+"',toTimestamp(now()));";
+    },
+    createInsertEventStatement(ID,date,description,type){
+        query="insert into log.events(ID,date,description,type,timestamp) values (";
+        query+="'"+ID+"','"+date+"','"+description+"','"+type+"',toTimestamp(now()));";
+        return query;
+    },
+    createInsertLinkStatement(ID1,ID2,type){
+        query="insert into log.links(ID1, ID2, type,timestamp) values (";
+        query+="'"+ID1+"','"+ID2+"','"+type+"',toTimestamp(now()));";
+        return query;
+    },
     /**
      * persons table:
      * @param id string
@@ -113,6 +128,67 @@ module.exports = {
                 }
             })
         })
+    },
+    /**
+     *
+     * @param name string
+     * @param governmentForm string
+     * @param population int
+     * @param HDI float
+     */
+    insertCountry(name, governmentForm,population,HDI){
+        query=this.createInsertCountryStatement(name, governmentForm,population,HDI);
+        console.log(query);
+        client.execute(query);
+    },
+    selectCountry(name, begin,end){
+        query="select * from log.countries where name='"+name+"'";
+        //timestamp>='"+begin+"' AND timestamp<='"+end+"'";
+        if(begin!=null){
+            query+=" AND timestamp>='"+begin+"'";
+        }
+        if(end!=null){
+            query+=" AND timestamp<='"+end+"'";
+        }
+        query+=";";
+        console.log(query);
+        return new Promise((resolve, reject) => {
+            client.execute(query, (err, result) => {
+                if(!err){
+                    resolve(result.rows);
+                } else {
+                    reject(err);
+                }
+            })
+        })
+    },
+    insertEvent(ID,date,description,type){
+        query=this.createInsertEventStatement(id,date,description,type);
+        console.log(query);
+        client.execute(query);
+
+    },
+    insertEvents(IDs,dates,descriptions,types){
+        queries=[];
+        for(var i=0;i<ids.length;++i){
+            queries.push(this.createInsertEventStatement(IDs[i],dates[i],descriptions[i],types[i]));
+        }
+        console.log(queries);
+        client.batch(queries);
+
+    },
+    insertLink(id1,id2,type){
+        query=this.createInsertLinkStatement(id1,id2,type);
+        console.log(query);
+        client.execute(query);
+    },
+    insertLinks(id1s,id2s,types){
+        queries=[];
+        for(var i=0;i<ids.length;++i){
+            queries.push(this.createInsertLinkStatement(ids1[i],ids2[i],types[i]));
+        }
+        console.log(queries);
+        client.batch(queries);
     },
     returnHumanLogs(params){
         const cassandra=require('cassandra-driver');
