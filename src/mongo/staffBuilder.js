@@ -1,14 +1,4 @@
-const statusEnum = [
-	"Retired",
-	"Dead",
-	"Missing",
-	"Fired",
-	"Abroad",
-	"OnVacation",
-	"InPrison",
-	"Sick",
-	"AtHome"
-];
+const statusEnum = require('./staffStatuses');
 
 const collectionName = 'staff';
 
