@@ -9,12 +9,13 @@ require('dotenv').config();
 
 Promise.all([
 	require('./src/mongo/mongoConnector')(mongoose),
-	cassandraApi.init()
+	cassandraApi.init(),
+	neo4jApi.init()
 ]).then(() => {
-	mongoOperations.init(mongoose);
+	//mongoOperations.init(mongoose);
 
-	mongoOperations.find();
-
+	//mongoOperations.find();
+	neo4jApi.addHuman("1703","45");
 
 	app.listen(4000, () => {
 		console.log('Running a GraphQL API server at localhost:4000/graphql');
