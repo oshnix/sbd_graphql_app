@@ -140,7 +140,7 @@ module.exports = {
 		query = this.createInsertPersonStatement(id,bossId,firstName,lastName, nickname, position, salary, statusChange);
 		//query="insert into log.persons (ID,FirstName,LastName,NickName,StatusChange,Salary, Position,bossId, timestamp)"+
 		//   " values('"+id+"','"+firstName+"','"+lastName+"','"+nickname+"','"+statusChange+"',"+salary+",'"+position+"','"+bossId+"',toTimestamp(now()));";
-		console.log(query);
+
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -156,7 +156,6 @@ module.exports = {
 		for(let i = 0;i < ids.length;++i){
 			queries.push(this.createInsertPersonStatement(ids[i],bossIds[i],firstNames[i],lastNames[i],nicknames[i],positions[i],salaries[i],statusChanges[i]));
 		}
-		console.log(queries);
 		return new Promise((resolve, reject) => {
 			client.batch(queries, (err, result) => {
 				if(!err){
@@ -166,7 +165,6 @@ module.exports = {
 				}
 			})
 		})
-		//client.batch(queries);
 	},
 
 	removePerson(id){
@@ -186,7 +184,6 @@ module.exports = {
 	selectTop10Persons(id){
 		query = "select * from log.persons where id='" + id + "' limit 10;";
 		//query="select * from log.persons";
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -199,7 +196,6 @@ module.exports = {
 	},
 	selectTopNPersons(id,N){
 		query = "select * from log.persons where id='" + id + "' limit " + N + ";";
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -226,7 +222,6 @@ module.exports = {
 			query += " AND position='" + position + "'";
 		}
 		query += ";";
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -247,7 +242,6 @@ module.exports = {
 
 	insertCountry(name, governmentForm,population,HDI){
 		query = this.createInsertCountryStatement(name, governmentForm,population,HDI);
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -270,7 +264,6 @@ module.exports = {
 			query += " AND timestamp<='" + end + "'";
 		}
 		query += ";";
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -283,7 +276,6 @@ module.exports = {
 	},
 	insertEvent(id,date,description,type){
 		query = this.createInsertEventStatement(id,date,description,type);
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -301,7 +293,6 @@ module.exports = {
 		for(let i = 0;i < ids.length;++i){
 			queries.push(this.createInsertEventStatement(IDs[i],dates[i],descriptions[i],types[i]));
 		}
-		console.log(queries);
 		return new Promise((resolve, reject) => {
 			client.batch(queries, (err, result) => {
 				if(!err){
@@ -316,7 +307,6 @@ module.exports = {
 	},
 	insertLink(id1,id2,type){
 		query = this.createInsertLinkStatement(id1,id2,type);
-		console.log(query);
 		return new Promise((resolve, reject) => {
 			client.execute(query, (err, result) => {
 				if(!err){
@@ -333,7 +323,6 @@ module.exports = {
 		for(let i = 0;i < id1s.length;++i){
 			queries.push(this.createInsertLinkStatement(id1s[i],id2s[i],types[i]));
 		}
-		console.log(queries);
 		return new Promise((resolve, reject) => {
 			client.batch(query, (err, result) => {
 				if(!err){
@@ -350,7 +339,7 @@ module.exports = {
 		for(let i = 0;i < id1s.length;++i){
 			queries.push(this.createInsertLinkTestStatement(id1s[i],id2s[i],types[i]));
 		}
-		//console.log(queries);
+
 		return new Promise((resolve, reject) => {
 			client.batch(queries, (err, result) => {
 				if(!err){
@@ -368,7 +357,6 @@ module.exports = {
 		for(let i = 0;i < ids.length;++i){
 			queries.push(this.createInsertEventTestStatement(IDs[i],dates[i],descriptions[i],types[i]));
 		}
-		//console.log(queries);
 		return new Promise((resolve, reject) => {
 			client.batch(queries, (err, result) => {
 				if(!err){

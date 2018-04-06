@@ -1,6 +1,7 @@
 const { TypeComposer } = require('graphql-compose');
 const { model } = require('../mongo/index');
 const neo4jApi = require('../neo4j_api');
+const cassandraApi = require('../cassandra_api');
 
 const staffTC =  TypeComposer.create(`
 	type Staff {
@@ -18,18 +19,44 @@ const staffTC =  TypeComposer.create(`
 	}
 `);
 
-const staffFilterInput =
-	`input staffFilterInput	 {
-		_id: String
-		firstName: String
-		lastName: String
+const creationData =
+	`input staffCreationData {
+		firstName: String!
+		lastName: String!
+		status: [String]!
+		salary: Int!
+		birthDate: Date!
+		position: String!
+		bossId: String
+		description: String
+		nickname: String
 	}`;
 
-const multipleStaffFilterInput =
-	`input multipleStaffFilterInput	 {
-		_ids: [String]
+const updateData =
+	`input staffUpdateData {
 		firstName: String
 		lastName: String
+		status: [String]
+		isActive: Boolean
+		salary: Int
+		position: String
+		bossId: String
+		slavesNewBossId: String
+		description: String
+		nickname: String
+	}`;
+
+
+const staffFilterInput =
+	`input staffFilterInput	 {
+		firstName: String
+		lastName: String
+		isActive: Boolean
+		status: [String]
+		description: String
+		nickname: String
+		position: String
+		bossId: String
 	}`;
 
 staffTC.addResolver({
@@ -57,16 +84,83 @@ staffTC.addResolver({
 });
 
 staffTC.addResolver({
-	kind: 'query',
-	name: 'findMany',
-	args: {
-		filter: multipleStaffFilterInput
+	kind: "mutation",
+	name: 'add',
+	args : {
+		person: creationData
 	},
-	type: [staffTC],
+	type: staffTC,
 	resolve: async ({args}) => {
-		return await fetchStaff(model.find(args.filter));
+		args.person.isActive = true;
+		let staff = new model(args.person);
+		await staff.save();
+		let id = staff._id.toString();
+		let bossId = args.person.bossId;
+		await neo4jApi.addHuman(id, bossId);
+		await cassandraApi.insertPerson(id, bossId, staff.firstName, staff.lastName, staff.nickname, staff.position, staff.salary, staff.status[0]);
+		return staff;
 	}
 });
+
+staffTC.addResolver({
+	kind: "mutation",
+	name: 'delete',
+	args: {
+		_id: "String!",
+		newBossId: "String!"
+	},
+	resolve: async ({args}) => {
+		let id = args._id;
+		let bossId = args.bossId;
+
+		await neo4jApi.changeSlavesBoss(id, bossId);
+		await neo4jApi.deleteHuman(id);
+		await model.remove({_id: id});
+		await cassandraApi.removePerson(id);
+	}
+});
+
+staffTC.addResolver({
+	kind: "mutation",
+	name: 'update',
+	args : {
+		_id: "String!",
+		personChanged: updateData
+	},
+	type: staffTC,
+	resolve: async ({args}) => {
+		let id = args._id.toString();
+		let staff = await model.findById(id);
+		if (args.personChanged.bossId) {
+			await neo4jApi.changePersonBoss(id, args.personChanged.bossId);
+		}
+		if (args.personChanged.isActive === false) {
+			if (args.personChanged.slavesNewBossId) {
+				await neo4jApi.changeSlavesBoss(id, args.personChanged.slavesNewBossId);
+			} else {
+				await neo4jApi.deleteAllBossConnections(id)
+			}
+		}
+
+		let updateParams = {};
+		for (let key in args.personChanged) {
+			if (staff[key] !== undefined) {
+				updateParams[key] = args.personChanged[key];
+			}
+		}
+		await staff.update(updateParams);
+
+
+		await cassandraApi.insertPerson(id, args.personChanged.bossId, staff.firstName, staff.lastName,
+			staff.nickname, staff.position, staff.salary, staff.status[0]);
+		return staff;
+	}
+});
+
+function parseSlaveIds(neoRes) {
+	return neoRes.map(item => item.get(0).properties['ID']);
+}
+
 
 async function fetchStaff(promise){
 	let staff = await promise;
@@ -77,8 +171,11 @@ async function fetchStaff(promise){
 
 async function fetchSlaves(item, limit = 10){
 	let neoRes = await neo4jApi.getBossSlaves(item._id.toString(), limit);
-	let ids = neoRes.map(item => item.get(0).properties['ID']);
-	return await model.find({_id: {$in: ids}});
+	return await model.find({_id: {$in: parseSlaveIds(neoRes)}});
+}
+
+async function fetchLog(item, limit = 10){
+	return await cassandraApi.selectTopNPersons(item._id.toString(), limit);
 }
 
 
@@ -95,6 +192,24 @@ staffTC.addFields({
 		},
 		resolve: async (source, args) => {
 			return fetchSlaves(source, args.limit);
+		}
+	},
+	log: {
+		type: [`type StaffLog {
+			firstname: String!
+			lastname: String!
+			position: String!
+			statuschange: String!
+			salary: Int!
+			timestamp: Date
+			id: String!
+			nickname: String!
+		}`],
+		args: {
+			limit: "Int"
+		},
+		resolve: async (source, args) => {
+			return fetchLog(source, args.limit);
 		}
 	}
 });

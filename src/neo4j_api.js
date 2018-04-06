@@ -53,6 +53,38 @@ module.exports = {
 			console.error(error);
 		})
 	},
+	changePersonBoss(Id, bossId){
+		let session = driver.session();
+		return session.run(
+			`MATCH (b:Person {ID: $boss}), (a:Person {ID: $ID2}) 
+			CREATE (a)<-[:headOf]-(b) 
+			return a, b`,
+			{boss: bossId, ID2: Id}
+		).then(result => {
+			session.close();
+			return result.records;
+		})
+	},
+	deleteAllBossConnections(bossId){
+		let session = driver.session();
+		return session.run(
+			`MATCH (n:Person { ID: $boss })-[r:headOf]->(y:Person) 
+			DELETE r`,
+			{ID: bossId}
+		).then(() => {
+			session.close();
+		})
+	},
+	changeSlavesBoss(id, newBossId) {
+		let session = driver.session();
+		return session.run(
+			`MATCH (p:Person { ID: $ID})-[:headOf]->(n:Person) 
+			CREATE (n)<-[:headOf]-(a:Person { ID: $newboss})`,
+			{ID: id, newboss: newBossId}
+		).then(() => {
+			session.close();
+		})
+	},
 	getHumanBoss(ID, Lim){
 		let session = driver.session();
 		return session.run(
@@ -74,7 +106,7 @@ module.exports = {
 			return result.records;
 		})
 	},
-	deleteHuman(){
+	deleteHuman(ID){
 		let session = driver.session();
 
 		const resultPromise = session.run(
@@ -82,12 +114,8 @@ module.exports = {
 			{ID: ID}
 		);
 
-		resultPromise.then(result => {
+		return resultPromise.then(result => {
 			session.close();
-			const singleRecord = result.records[0];
-			const node = singleRecord.get(0);
-			console.log(result);
-			return node;
 		});
 	}
 };

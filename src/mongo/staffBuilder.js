@@ -7,7 +7,8 @@ const statusEnum = [
 	"OnVacation",
 	"InPrison",
 	"Sick",
-	"AtHome"
+	"AtHome",
+	"Working"
 ];
 
 const schema = {

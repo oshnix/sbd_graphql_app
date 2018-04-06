@@ -16,20 +16,17 @@ Promise.all([
 	cassandraApi.init(),
 	neo4jApi.init()
 ]).then(() => {
-
-
-	/*neo4jApi.addHuman("5ac79982a2c6f71592039f8f", null);
-	neo4jApi.addHuman("5ac654dbf3e4e75df4d627ef", "5ac79982a2c6f71592039f8f");*/
-
-	/*neo4jApi.getHumanBoss("5ac654dbf3e4e75df4d627ef", 1).then(response => {
-		console.log(response[0].get(0));
-	});*/
-
 	schemaComposer.rootQuery().addFields({
 		findStaffById: staffSchema.getResolver('findById'),
-		findOneStaff: staffSchema.getResolver('findOne'),
-		findManyStaff: staffSchema.getResolver('findMany')
+		findOneStaff: staffSchema.getResolver('findOne')
 	});
+
+	schemaComposer.rootMutation().addFields({
+		addStaff: staffSchema.getResolver('add'),
+		updateStaff: staffSchema.getResolver('update'),
+		deleteStaff: staffSchema.getResolver('delete')
+	});
+
 	const graphQlSchema = schemaComposer.buildSchema();
 
 
