@@ -1,27 +1,50 @@
-const mongoose = require("mongoose");
+require('dotenv').config();
 const app = require('express')();
+const schemaComposer = require('graphql-compose').schemaComposer;
 const graphqlHTTP = require('express-graphql');
+
 const cassandraApi = require('./src/cassandra_api');
 const neo4jApi = require('./src/neo4j_api');
-const mongoOperations = require('./src/mongo/staffOperations');
 
-require('dotenv').config();
+const mongoDriver = require('./src/mongo');
+const staffSchema = require('./src/graphql/staffSchema');
+
+
 
 Promise.all([
-	require('./src/mongo/mongoConnector')(mongoose),
-	cassandraApi.init()
+	mongoDriver.init(),
+	cassandraApi.init(),
+	neo4jApi.init()
 ]).then(() => {
-	mongoOperations.init(mongoose);
 
-	mongoOperations.find();
 
+	/*neo4jApi.addHuman("5ac79982a2c6f71592039f8f", null);
+	neo4jApi.addHuman("5ac654dbf3e4e75df4d627ef", "5ac79982a2c6f71592039f8f");*/
+
+	/*neo4jApi.getHumanBoss("5ac654dbf3e4e75df4d627ef", 1).then(response => {
+		console.log(response[0].get(0));
+	});*/
+
+	schemaComposer.rootQuery().addFields({
+		findStaffById: staffSchema.getResolver('findById'),
+		findOneStaff: staffSchema.getResolver('findOne'),
+		findManyStaff: staffSchema.getResolver('findMany')
+	});
+	const graphQlSchema = schemaComposer.buildSchema();
+
+
+	app.use('/graphql', graphqlHTTP(req => ({
+		schema: graphQlSchema,
+		pretty: true,
+		graphiql: true
+	})));
 
 	app.listen(4000, () => {
 		console.log('Running a GraphQL API server at localhost:4000/graphql');
 	});
+}).catch(error => {
+	console.error(error);
 });
-
-
 
 
 //TODO remove comments after copying useful stuff from it

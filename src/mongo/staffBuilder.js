@@ -10,8 +10,6 @@ const statusEnum = [
 	"AtHome"
 ];
 
-const collectionName = 'staff';
-
 const schema = {
 	firstName: {
 		required: true,
@@ -40,10 +38,8 @@ const schema = {
 		type: String,
 	},
 	position: {
-		type: String
-	},
-	parentPosition: {
-		type: String
+		type: String,
+		required: true
 	},
 	status: {
 		type: [{
@@ -57,10 +53,10 @@ const schema = {
 
 
 
-module.exports = mongoose => {
+module.exports.schema = mongoose => {
 	let staff = new mongoose.Schema(schema);
 	staff.index({firstName: 1, lastName: 1});
-
-	return mongoose.model(collectionName, staff, collectionName);
+	return staff;
 };
 
+module.exports.collectionName = 'staff';

@@ -30,21 +30,49 @@ module.exports = {
 	},
 	addHuman(ID, bossID){
 		let session = driver.session();
+		let resultPromise;
 
-		const resultPromise = session.run(
-			'CREATE (a:Person {ID: $ID}), MATCH (a:Person {ID: $ID}),(b:Person {ID: $bossID}) create (b)-[r:SUIT]->(a) RETURN a',
-			{ID: ID},
-			{ID: ID, bossID: bossID}
-
-		);
+		if(bossID) {
+			resultPromise = session.run(`
+			MATCH (b:Person {ID: $boss})
+			CREATE (a:Person {ID: $newID})<-[:headOf]-(b)
+			return a`,
+			{boss: bossID, newID: ID}
+			);
+		} else {
+			resultPromise = session.run(`
+			CREATE (a:Person {ID: $ID})
+			return a`,
+			{ID: ID});
+		}
 
 		resultPromise.then(result => {
 			session.close();
-			const singleRecord = result.records[0];
-			const node = singleRecord.get(0);
 			console.log(result);
-			return node;
-		});
+		}).catch(error => {
+			console.error(error);
+		})
+	},
+	getHumanBoss(ID, Lim){
+		let session = driver.session();
+		return session.run(
+			`MATCH (p:Person { ID: $ID })<-[:headOf]-(boss:Person) RETURN boss limit $Lim`,
+			{ID: ID, Lim}
+		).then(result => {
+			session.close();
+			return result.records;
+		})
+	},
+	getBossSlaves(ID, Lim){
+		let session = driver.session();
+		return session.run(
+			`MATCH (p:Person { ID: $ID })-[:headOf]->(boss:Person)
+			RETURN boss limit $Lim`,
+			{ID: ID, Lim}
+		).then(result => {
+			session.close();
+			return result.records;
+		})
 	},
 	deleteHuman(){
 		let session = driver.session();

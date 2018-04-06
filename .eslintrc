@@ -7,7 +7,7 @@
     }
   },
   "rules": {
-    "indent": ["error", "tab"],
+    "indent": ["warn", "tab"],
     "space-unary-ops": [
       2, {
         "words": true,
