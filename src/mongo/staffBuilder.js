@@ -59,7 +59,7 @@ const schema = {
 
 module.exports = mongoose => {
 	let staff = new mongoose.Schema(schema);
-	staff.index({firstName: 1, lastName: 1, nickname: 1}, {unique: true});
+	staff.index({firstName: 1, lastName: 1});
 
 	return mongoose.model(collectionName, staff, collectionName);
 };

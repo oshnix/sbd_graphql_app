@@ -21,10 +21,10 @@ Promise.all([
 	});
 });
 
-return;
+
+
 
 //TODO remove comments after copying useful stuff from it
-
 
 /**
  * working functions:
