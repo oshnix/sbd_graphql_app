@@ -45,7 +45,6 @@ module.exports = {
 
 		resultPromise.then(result => {
 			session.close();
-			console.log(result);
 		}).catch(error => {
 			console.error(error);
 		})

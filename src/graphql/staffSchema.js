@@ -145,14 +145,12 @@ staffTC.addResolver({
 			}
 		}
 
-		let updateParams = {};
 		for (let key in args.personChanged) {
 			if (staff[key] !== undefined) {
-				updateParams[key] = args.personChanged[key];
+				staff[key] = args.personChanged[key];
 			}
 		}
-		await staff.update(updateParams);
-
+		await staff.save();
 
 		await cassandraApi.insertPerson(id, args.personChanged.bossId, staff.firstName, staff.lastName,
 			staff.nickname, staff.position, staff.salary, staff.status[0]);
@@ -167,14 +165,22 @@ function parseSlaveIds(neoRes) {
 
 async function fetchStaff(promise){
 	let staff = await promise;
-	let neoRes = await neo4jApi.getHumanBoss(staff._id.toString(), 1);
-	staff.bossId = neoRes[0] ? neoRes[0].get(0).properties['ID'] : null;
+	staff.bossId = await getBossId(staff._id.toString());
 	return staff;
+}
+
+async function getBossId(id){
+	let neoRes = await neo4jApi.getHumanBoss(id, 1);
+	return neoRes[0] ? neoRes[0].get(0).properties['ID'] : null;
 }
 
 async function fetchSlaves(item, limit = 10){
 	let neoRes = await neo4jApi.getBossSlaves(item._id.toString(), limit);
-	return await model.find({_id: {$in: parseSlaveIds(neoRes)}});
+	let slaves = await model.find({_id: {$in: parseSlaveIds(neoRes)}});
+	return slaves.map(async item => {
+		item.bossId = await getBossId(item._id.toString());
+		return item;
+	});
 }
 
 async function fetchLog(item, limit = 10){
