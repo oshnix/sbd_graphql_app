@@ -8,6 +8,7 @@ const neo4jApi = require('./src/neo4j_api');
 
 const mongoDriver = require('./src/mongo');
 const staffSchema = require('./src/graphql/staffSchema');
+const eventSchema = require('./src/graphql/eventSchema');
 
 
 
@@ -18,13 +19,17 @@ Promise.all([
 ]).then(() => {
 	schemaComposer.rootQuery().addFields({
 		findStaffById: staffSchema.getResolver('findById'),
-		findOneStaff: staffSchema.getResolver('findOne')
+		findOneStaff: staffSchema.getResolver('findOne'),
+		findEventById: eventSchema.getResolver('findById'),
+		getAllEvents: eventSchema.getResolver('getAll')
 	});
 
 	schemaComposer.rootMutation().addFields({
 		addStaff: staffSchema.getResolver('add'),
 		updateStaff: staffSchema.getResolver('update'),
-		deleteStaff: staffSchema.getResolver('delete')
+		deleteStaff: staffSchema.getResolver('delete'),
+		addEvent: eventSchema.getResolver('add'),
+		linkEvents: eventSchema.getResolver('linkReason')
 	});
 
 	const graphQlSchema = schemaComposer.buildSchema();

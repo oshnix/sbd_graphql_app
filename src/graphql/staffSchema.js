@@ -2,6 +2,7 @@ const { TypeComposer } = require('graphql-compose');
 const { model } = require('../mongo/index');
 const neo4jApi = require('../neo4j_api');
 const cassandraApi = require('../cassandra_api');
+const eventSchema = require('./eventSchema');
 
 const staffTC =  TypeComposer.create(`
 	type Staff {
@@ -109,6 +110,7 @@ staffTC.addResolver({
 		_id: "String!",
 		newBossId: "String!"
 	},
+	type: "String",
 	resolve: async ({args}) => {
 		let id = args._id;
 		let bossId = args.bossId;
@@ -117,6 +119,7 @@ staffTC.addResolver({
 		await neo4jApi.deleteHuman(id);
 		await model.remove({_id: id});
 		await cassandraApi.removePerson(id);
+		return "Success";
 	}
 });
 
@@ -210,6 +213,20 @@ staffTC.addFields({
 		},
 		resolve: async (source, args) => {
 			return fetchLog(source, args.limit);
+		}
+	},
+	events: {
+		type: [eventSchema],
+		args: {
+			limit: "Int"
+		},
+		resolve: async (source, args) => {
+			let records = await neo4jApi.getPersonEvents(source._id.toString(), args.limit);
+			return records.map(item => {
+				item = item.get(0).properties;
+				item.date = new Date(item.date);
+				return item;
+			});
 		}
 	}
 });
