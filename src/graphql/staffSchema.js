@@ -113,7 +113,7 @@ staffTC.addResolver({
 	type: "String",
 	resolve: async ({args}) => {
 		let id = args._id;
-		let bossId = args.bossId;
+		let bossId = args.newBossId;
 
 		await neo4jApi.changeSlavesBoss(id, bossId);
 		await neo4jApi.deleteHuman(id);
@@ -135,6 +135,7 @@ staffTC.addResolver({
 		let id = args._id.toString();
 		let staff = await model.findById(id);
 		if (args.personChanged.bossId) {
+			if(args.personChanged.bossId === id) new Error("Cannot assign person as itself boss");
 			await neo4jApi.changePersonBoss(id, args.personChanged.bossId);
 		}
 		if (args.personChanged.isActive === false) {
@@ -191,7 +192,13 @@ async function fetchLog(item, limit = 10){
 staffTC.addFields({
 	boss: {
 		type: "Staff",
-		resolve: async (source) => fetchStaff(model.findById(source.bossId)),
+		resolve: async (source) => {
+			if(source.bossId){
+				return await fetchStaff(model.findById(source.bossId))
+			} else {
+				return {}
+			}
+		},
 		projection: { bossId: true }
 	},
 	slaves: {
