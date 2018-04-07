@@ -52,7 +52,7 @@ module.exports = {
 	changePersonBoss(Id, bossId){
 		let session = driver.session();
 		return session.run(
-			`MATCH (b:Person {ID: $boss})<-[r1:headOf]-(c:Person), (a:Person {ID: $ID2})
+			`MATCH (b:Person {ID: $boss}), (a:Person {ID: $ID2})<-[r1:headOf]-(c:Person)
 			delete r1
 			CREATE (a)<-[:headOf]-(b) 
 			return a, b`,
