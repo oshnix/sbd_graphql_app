@@ -2,7 +2,7 @@ const { TypeComposer } = require('graphql-compose');
 const { model } = require('../mongo/index');
 const pg = require('../postgres');
 const neo4jApi = require('../neo4j_api');
-const cassandraApi = require('../cassandra_api');
+const cassandraApi = require('../cassandra/cassandra_api');
 
 const minLevel = 3;
 
