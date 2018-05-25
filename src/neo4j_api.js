@@ -1,8 +1,131 @@
 const neo4j = require('neo4j-driver').v1;
 let driver = null;
+
+function dataToString(date){
+	return `'${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}'`
+}
+
+const schema = [
+	{key: 'staffId'},
+	{key: 'firstName', value: value => `'${value}'`},
+	{key: 'lastName', value: value => `'${value}'`},
+	{key: 'nickname', value: value => `'${value}'`},
+	{key: 'birthDate', value: value => dataToString(value)} ,
+	{key: 'creationDate', value: value => dataToString(value)},
+	{key: 'position', value: value => `'${value}'`},
+	{key: 'bossId'},
+	{key: 'isActive'},
+	{key: 'salary'},
+	{key: 'description', value: value => `'${value}'`},
+	{key: 'status', value: value =>
+			`{${value.map(item => "'" + item + "'").join(',')}}`
+	}
+];
+
+function parseParams(paramsObject){
+	let keyArray = [];
+	let valuesArray = [];
+	Object.setPrototypeOf(paramsObject, Object);
+	for (let schemaItem of schema) {
+		if (paramsObject.hasOwnProperty(schemaItem.key)) {
+			let value = paramsObject[schemaItem.key];
+			keyArray.push(`${schemaItem.key}`);
+			valuesArray.push(schemaItem.value ? schemaItem.value(value) : value);
+		}
+	}
+	return {
+		keyArray,
+		valuesArray
+	}
+}
+
+function matchParams({keyArray, valuesArray}, separator,  query = ''){
+	if (keyArray.length > 0) {
+		let matchArray = [];
+		for (let i = 0; i < keyArray.length; i++) {
+			matchArray.push(`${keyArray[i]}: ${valuesArray[i]}`);
+		}
+		query += matchArray.join(separator);
+	} else {
+		query = '';
+	}
+	return query;
+}
+
 module.exports = {
 	init(){
 		driver = neo4j.driver("bolt://127.0.0.1:7687", neo4j.auth.basic(process.env.NEO4JUSER, process.env.NEO4JPASS));
+	},
+	insert(params){
+		params.birthDate = dataToString(params.birthDate);
+		params.creationDate = new Date().getTime();
+		let session = driver.session();
+		const resultPromise = session.run(
+			'CREATE (a:Person $person) RETURN a, id(a) as nodeId',
+			{person: params}
+		);
+		return resultPromise.then(result => {
+			session.close();
+			const singleRecord = result.records[0];
+			const node = singleRecord.get('a').properties;
+			node.staffId = singleRecord.get('nodeId').low;
+			return node;
+		});
+	},
+	find(params) {
+		let queryParams = matchParams(parseParams(params), ',', '{');
+		if (queryParams !== '') {
+			queryParams += '}';
+		}
+		console.log(queryParams);
+		let session = driver.session();
+		const resultPromise = session.run(`
+			MATCH (n:Person ${queryParams})
+			RETURN n, id(n) as nodeId`
+		);
+		return resultPromise.then(result => {
+			session.close();
+			if (result.records.length > 0) {
+				return result.records.map(item => {
+					let node = item.get('n').properties;
+					node.staffId = item.get('nodeId').low;
+					node.birthDate = new Date(node.birthDate);
+					node.creationDate = new Date(node.creationDate);
+					return node;
+				})
+			} else {
+				return [];
+			}
+		});
+	},
+	findById(id) {
+		let session = driver.session();
+		const resultPromise = session.run(`
+			MATCH (n:Person)
+			WHERE id(n) = ${id}
+			RETURN n`
+		);
+		return resultPromise.then(result => {
+			session.close();
+			const singleRecord = result.records[0];
+			if (!singleRecord) return null;
+			const node = singleRecord.get('n').properties;
+			node.staffId = id;
+			node.birthDate = new Date(node.birthDate);
+			node.creationDate = new Date(node.creationDate);
+			return node;
+		});
+	},
+	delete(id) {
+		let session = driver.session();
+		const resultPromise = session.run(`
+			MATCH (n:Person)
+			WHERE id(n) = ${id}
+			DELETE n`
+		);
+		return resultPromise.then(() => {
+			session.close();
+		});
 	},
 	getCountryByName(countryName){
 		let session = driver.session();

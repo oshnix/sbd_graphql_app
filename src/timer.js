@@ -1,6 +1,7 @@
 const { model } = require('./mongo/index');
 const pg = require('./postgres');
 const cassandra = require('./cassandra/cassandra_api');
+const neo4j = require('./neo4j_api');
 
 let staffReadCount = {};
 let callCount = 0;
@@ -56,9 +57,23 @@ module.exports = {
 		}
 	},
 	async moveOldCassandraData() {
-		let result = await cassandra.find();
-		let dataToMove = result.filter(item =>  (new Date().getTime() - item.creationDate.getTime()) / (1000 * 60) > 2)
-		console.log(dataToMove);
+		let result = await cassandra.find({});
+		let dataToMove = result.filter(item =>  (new Date().getTime() - item.creationDate.getTime()) / (1000 * 60) > 2);
+		dataToMove.forEach(async item => {
+			console.log('Moving data to mongo');
+			await cassandra.delete(item.staffId);
+			let staff = new model(item);
+			await staff.save();
+		});
+	},
+	async moveOldNeo4jData() {
+		let result = await neo4j.find({});
+		let dataToMove = result.filter(item =>  (new Date().getTime() - item.creationDate) / (1000 * 60) > 2);
+		dataToMove.forEach(async item => {
+			console.log('Moving data to cassandra');
+			await neo4j.delete(item.staffId);
+			await cassandra.insert(item);
+		});
 	}
 };
 

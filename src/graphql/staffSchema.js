@@ -6,7 +6,7 @@ const cassandraApi = require('../cassandra/cassandra_api');
 const timer = require('../timer');
 
 
-const minLevel = 3;
+const minLevel = 1;
 
 const staffTC =  TypeComposer.create(`
 	type Staff {
@@ -76,7 +76,15 @@ async function find (filter, level = 0){
 	switch (level) {
 		case 0:
 		case 1:
+			result = await neo4jApi.find(filter);
+			if ((result && result.length) || level === 1) {
+				return result;
+			}
 		case 2:
+			result = await cassandraApi.find(filter);
+			if ((result && result.length) || level === 2) {
+				return result;
+			}
 		case 3:
 			result = await model.find(filter);
 			if ((result && result.length) || level === 3) {
@@ -86,7 +94,7 @@ async function find (filter, level = 0){
 				return result;
 			}
 		case 4:
-			result = await fetchStaff(pg.find(filter));
+			result = await pg.find(filter);
 			if (result && result.length ) {
 				result.forEach(item => {
 					timer.increaseStaffReadCount(item.staffId, false);
@@ -101,7 +109,15 @@ async function findOneById(id, level = 0) {
 	switch (level) {
 		case 0:
 		case 1:
+			result = await neo4jApi.findById(id);
+			if (result || level === 1) {
+				return result;
+			}
 		case 2:
+			result = await cassandraApi.findById(id);
+			if (result || level === 2) {
+				return result;
+			}
 		case 3:
 			result = await model.findOne({staffId: id});
 			if ((result) || level === 3) {
@@ -109,7 +125,7 @@ async function findOneById(id, level = 0) {
 				return result;
 			}
 		case 4:
-			result = await fetchStaff(pg.findByID(id));
+			result = await pg.findByID(id);
 			if (result) {
 				timer.increaseStaffReadCount(result.staffId, false);
 			}
@@ -118,10 +134,16 @@ async function findOneById(id, level = 0) {
 }
 
 async function add(params, level = minLevel) {
+	let staff;
 	switch (level) {
+		case 1:
+			staff = await neo4jApi.insert(params);
+			return staff;
+		case 2:
+			staff = await cassandraApi.insert(params);
+			return staff;
 		case 3:
-			if (!params.staffId) params.staffId = 12;
-			let staff = new model(params);
+			staff = new model(params);
 			await staff.save();
 			return staff;
 		case 4:
@@ -197,30 +219,6 @@ staffTC.addResolver({
 	resolve: async ({args}) => {
 		let result = await pg.update(args.staffId, args.personChanged);
 		return result;
-		/*let id = args._id.toString();
-		let staff = await model.findById(id);
-		if (args.personChanged.bossId) {
-			if(args.personChanged.bossId === id) new Error("Cannot assign person as itself boss");
-			await neo4jApi.changePersonBoss(id, args.personChanged.bossId);
-		}
-		if (args.personChanged.isActive === false) {
-			if (args.personChanged.slavesNewBossId) {
-				await neo4jApi.changeSlavesBoss(id, args.personChanged.slavesNewBossId);
-			} else {
-				await neo4jApi.deleteAllBossConnections(id)
-			}
-		}
-
-		for (let key in args.personChanged) {
-			if (staff[key] !== undefined) {
-				staff[key] = args.personChanged[key];
-			}
-		}
-		await staff.save();
-
-		await cassandraApi.insertPerson(id, args.personChanged.bossId, staff.firstName, staff.lastName,
-			staff.nickname, staff.position, staff.salary, staff.status[0]);
-		return staff;*/
 	}
 });
 
@@ -234,7 +232,8 @@ staffTC.addFields({
 		type: "Staff",
 		resolve: async (source) => {
 			if(source.bossId){
-				return await fetchStaff(pg.findByID(source.bossId))
+				let result = await findOneById(source.bossId);
+				return result;
 			} else {
 				return null;
 			}
