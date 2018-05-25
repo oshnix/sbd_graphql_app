@@ -1,4 +1,3 @@
-const assert = require('assert').strict;
 const cassandra = require('cassandra-driver');
 let client = null;
 const table = 'cache.persons';
@@ -9,6 +8,7 @@ const schema = [
     {key: 'lastName'},
     {key: 'nickname'},
     {key: 'birthDate'},
+    {key: 'creationDate'},
     {key: 'position'},
     {key: 'bossId'},
     {key: 'isActive'},

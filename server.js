@@ -1,29 +1,3 @@
-const cassandraApi = require('./src/cassandra/cassandra_api');
-
-
-
-cassandraApi.init();
-var prms = new Object();
-prms.staffId=1;
-prms.firstName="M";
-prms.lastName="A";
-prms.nickname='good';
-prms.birthDate='1996-12-13';
-prms.position="Director";
-prms.bossId=null;
-prms.isActive=true;
-prms.salary=123;
-prms.description="no";
-prms.status=["good guy","really good!"];
-console.log(cassandraApi.update(1,prms));
-/*
-let res=cassandraApi.update(1,prms).then(result => {
-    console.log(result);
-}).catch(error => {
-    console.error(error);
-})
-*/
-/*
 require('dotenv').config();
 const postgres = require('./src/postgres');
 const timer = require('./src/timer');
@@ -37,6 +11,7 @@ const neo4jApi = require('./src/neo4j_api');
 
 const mongoDriver = require('./src/mongo');
 const staffSchema = require('./src/graphql/staffSchema');
+
 Promise.all([
 	postgres.init(),
 	mongoDriver.init(),
@@ -65,8 +40,7 @@ Promise.all([
 	app.listen(4000, () => {
 		console.log('Running a GraphQL API server at localhost:4000/graphql');
 	});
-	setInterval(timer.checkIds, 30000);
+	setInterval(timer.checkIds, 15000);
 }).catch(error => {
 	console.error(error);
 });
-*/
