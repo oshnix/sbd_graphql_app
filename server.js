@@ -41,6 +41,7 @@ Promise.all([
 		console.log('Running a GraphQL API server at localhost:4000/graphql');
 	});
 	setInterval(timer.checkIds, 15000);
+	setInterval(timer.moveOldCassandraData, 60000);
 }).catch(error => {
 	console.error(error);
 });
