@@ -1,4 +1,3 @@
-const assert = require('assert').strict;
 const cassandra = require('cassandra-driver');
 let client = null;
 const table = 'cache.persons';

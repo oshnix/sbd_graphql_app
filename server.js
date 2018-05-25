@@ -1,3 +1,4 @@
+
 const cassandraApi = require('./src/cassandra/cassandra_api');
 
 
@@ -25,6 +26,8 @@ let res=cassandraApi.findById(1).then(result => {
 })
 */
 /*
+=======
+>>>>>>> e7711727fc39cabd68d4dcc43618b45200dbb216
 require('dotenv').config();
 const postgres = require('./src/postgres');
 const timer = require('./src/timer');
@@ -38,6 +41,7 @@ const neo4jApi = require('./src/neo4j_api');
 
 const mongoDriver = require('./src/mongo');
 const staffSchema = require('./src/graphql/staffSchema');
+
 Promise.all([
 	postgres.init(),
 	mongoDriver.init(),
@@ -67,7 +71,7 @@ Promise.all([
 		console.log('Running a GraphQL API server at localhost:4000/graphql');
 	});
 	setInterval(timer.checkIds, 15000);
+	setInterval(timer.moveOldCassandraData, 60000);
 }).catch(error => {
 	console.error(error);
 });
-*/

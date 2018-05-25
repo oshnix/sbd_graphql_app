@@ -1,5 +1,6 @@
 const { model } = require('./mongo/index');
 const pg = require('./postgres');
+const cassandra = require('./cassandra/cassandra_api');
 
 let staffReadCount = {};
 let callCount = 0;
@@ -53,6 +54,11 @@ module.exports = {
 				})
 			})
 		}
+	},
+	async moveOldCassandraData() {
+		let result = await cassandra.find();
+		let dataToMove = result.filter(item =>  (new Date().getTime() - item.creationDate.getTime()) / (1000 * 60) > 2)
+		console.log(dataToMove);
 	}
 };
 
