@@ -3,6 +3,8 @@ const { model } = require('../mongo/index');
 const pg = require('../postgres');
 const neo4jApi = require('../neo4j_api');
 const cassandraApi = require('../cassandra/cassandra_api');
+const timer = require('../timer');
+
 
 const minLevel = 3;
 
@@ -70,28 +72,48 @@ function checkLevel(level){
 }
 
 async function find (filter, level = 0){
+	let result;
 	switch (level) {
 		case 0:
 		case 1:
 		case 2:
 		case 3:
-			let result = await model.find(filter);
-			if ((result && result.length) || level === 3) return result;
+			result = await model.find(filter);
+			if ((result && result.length) || level === 3) {
+				if (result && result.length) result.forEach(item => {
+					timer.increaseStaffReadCount(item.staffId, true);
+				});
+				return result;
+			}
 		case 4:
-			return await fetchStaff(pg.find(filter))
+			result = await fetchStaff(pg.find(filter));
+			if (result && result.length ) {
+				result.forEach(item => {
+					timer.increaseStaffReadCount(item.staffId, false);
+				});
+			}
+			return result;
 	}
 }
 
 async function findOneById(id, level = 0) {
+	let result;
 	switch (level) {
 		case 0:
 		case 1:
 		case 2:
 		case 3:
-			let result = await model.findOne({staffId: id});
-			if ((result && result.length) || level === 3) return result;
+			result = await model.findOne({staffId: id});
+			if ((result) || level === 3) {
+				if (result) timer.increaseStaffReadCount(result.staffId, true);
+				return result;
+			}
 		case 4:
-			return await fetchStaff(pg.findByID(id));
+			result = await fetchStaff(pg.findByID(id));
+			if (result) {
+				timer.increaseStaffReadCount(result.staffId, false);
+			}
+			return result;
 	}
 }
 
@@ -102,7 +124,6 @@ async function add(params, level = minLevel) {
 			let staff = new model(params);
 			await staff.save();
 			return staff;
-			break;
 		case 4:
 			return await pg.insert(params);
 	}
