@@ -4,21 +4,10 @@ let client = null;
 
 module.exports = {
 	init(){
-		client = new cassandra.Client({
-			contactPoints: ['127.0.0.2', '127.0.0.3', '127.0.0.4'],
-			policies : {
-				loadBalancing : new cassandra.policies.loadBalancing.RoundRobinPolicy(),
-				reconnection: new cassandra.policies.reconnection.ConstantReconnectionPolicy(30),
-			},
-
-		});
+		client = new cassandra.Client({ contactPoints: ['127.0.0.1'] });
 		return new Promise((resolve, reject) => {
 	        client.connect( err => {
-				client.hosts.forEach(function (host) {
-					console.log(host.address, host.datacenter, host.rack);
-				});
-
-				if(err) reject(err);
+		        if(err) reject(err);
 		        else resolve();
 	        });
 		})

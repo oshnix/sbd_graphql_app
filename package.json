@@ -15,9 +15,10 @@
     "express-graphql": "^0.6.12",
     "graphql": "^0.13.2",
     "graphql-compose": "^3.1.1",
-    "mongoose": "^5.0.12",
     "graphql-compose-mongoose": "^3.1.2",
-    "neo4j-driver": "^1.5.3"
+    "mongoose": "^5.0.12",
+    "neo4j-driver": "^1.5.3",
+    "pg": "^7.4.3"
   },
   "devDependencies": {
     "eslint": "^4.19.1"

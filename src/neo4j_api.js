@@ -2,7 +2,7 @@ const neo4j = require('neo4j-driver').v1;
 let driver = null;
 module.exports = {
 	init(){
-		driver = neo4j.driver("bolt+routing://127.0.0.1:7687", neo4j.auth.basic(process.env.NEO4JUSER, process.env.NEO4JPASS));
+		driver = neo4j.driver("bolt://127.0.0.1:7687", neo4j.auth.basic(process.env.NEO4JUSER, process.env.NEO4JPASS));
 	},
 	getCountryByName(countryName){
 		let session = driver.session();

@@ -1,4 +1,6 @@
 require('dotenv').config();
+const postgres = require('./src/postgres');
+
 const app = require('express')();
 const schemaComposer = require('graphql-compose').schemaComposer;
 const graphqlHTTP = require('express-graphql');
@@ -8,30 +10,25 @@ const neo4jApi = require('./src/neo4j_api');
 
 const mongoDriver = require('./src/mongo');
 const staffSchema = require('./src/graphql/staffSchema');
-const eventSchema = require('./src/graphql/eventSchema');
 
 Promise.all([
+	postgres.init(),
 	mongoDriver.init(),
 	cassandraApi.init(),
 	neo4jApi.init()
 ]).then(() => {
 	schemaComposer.rootQuery().addFields({
 		findStaffById: staffSchema.getResolver('findById'),
-		findOneStaff: staffSchema.getResolver('findOne'),
-		findEventById: eventSchema.getResolver('findById'),
-		getAllEvents: eventSchema.getResolver('getAll')
+		find: staffSchema.getResolver('find'),
 	});
 
 	schemaComposer.rootMutation().addFields({
 		addStaff: staffSchema.getResolver('add'),
 		updateStaff: staffSchema.getResolver('update'),
-		deleteStaff: staffSchema.getResolver('delete'),
-		addEvent: eventSchema.getResolver('add'),
-		linkEvents: eventSchema.getResolver('linkReason')
+		deleteStaff: staffSchema.getResolver('delete')
 	});
 
 	const graphQlSchema = schemaComposer.buildSchema();
-
 
 	app.use('/graphql', graphqlHTTP(req => ({
 		schema: graphQlSchema,

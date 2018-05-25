@@ -1,17 +1,9 @@
-const statusEnum = [
-	"Retired",
-	"Dead",
-	"Missing",
-	"Fired",
-	"Abroad",
-	"OnVacation",
-	"InPrison",
-	"Sick",
-	"AtHome",
-	"Working"
-];
 
 const schema = {
+	staffId: {
+		required: true,
+		type: Number
+	},
 	firstName: {
 		required: true,
 		type: String
@@ -45,19 +37,15 @@ const schema = {
 	status: {
 		type: [{
 			type: String,
-			enum: statusEnum
 		}],
 		required: true,
-		validate: val => val.length >= 1 && val.length <= 3
 	}
 };
 
 
 
 module.exports.schema = mongoose => {
-	let staff = new mongoose.Schema(schema);
-	staff.index({firstName: 1, lastName: 1});
-	return staff;
+	return new mongoose.Schema(schema, {id: false, autoIndex: false});
 };
 
 module.exports.collectionName = 'staff';
