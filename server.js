@@ -4,20 +4,21 @@ const cassandraApi = require('./src/cassandra/cassandra_api');
 
 cassandraApi.init();
 var prms = new Object();
-prms.staffId=1;
+prms.staffId=2;
 prms.firstName="M";
 prms.lastName="A";
 prms.nickname='good';
 prms.birthDate='1996-12-13';
+prms.creationDate='2018-12-13';
 prms.position="Director";
 prms.bossId=null;
 prms.isActive=true;
 prms.salary=123;
 prms.description="no";
 prms.status=["good guy","really good!"];
-console.log(cassandraApi.update(1,prms));
+console.log(cassandraApi.insert(prms));
 /*
-let res=cassandraApi.update(1,prms).then(result => {
+let res=cassandraApi.findById(1).then(result => {
     console.log(result);
 }).catch(error => {
     console.error(error);

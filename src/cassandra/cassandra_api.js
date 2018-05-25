@@ -9,6 +9,7 @@ const schema = [
     {key: 'lastName'},
     {key: 'nickname'},
     {key: 'birthDate'},
+    {key: 'creationDate'},
     {key: 'position'},
     {key: 'bossId'},
     {key: 'isActive'},
@@ -54,7 +55,7 @@ function matchParams({keyArray, substParamArray}, separator,  query = ''){
 
 module.exports = {
     delete(id){
-        let query = "delete from cache.persons where id='" + id + "'";
+        let query = 'delete from cache.persons where "staffId"=' + id;
         return new Promise((resolve, reject) => {
             client.execute(query, (err, result) => {
                 if(!err){
@@ -67,13 +68,14 @@ module.exports = {
     },
 
     async insert(params){
-       let query="insert into cache.persons(staffId,firstName,lastName,nickName,birthdate,position,bossId, isActive,salary,description,status)\
-        values(";
+       let query='insert into cache.persons("staffId","firstName","lastName","nickname","birthDate","creationDate","position","bossId", "isActive","salary","description","status")\
+        values(';
         query+=params.staffId+",";
         query+="'"+params.firstName+"',";
         query+="'"+params.lastName+"',";
         query+="'"+params.nickname+"',";
         query+="'"+params.birthDate+"',";
+        query+="'"+params.creationDate+"',";
         query+="'"+params.position+"',";
         if(params.bossId!=null){
             query+="'"+params.bossId+"',";
@@ -102,7 +104,7 @@ module.exports = {
     },
 
    async findById(id){
-        let query = "select * from cache.persons where staffId=" + id +";";
+        let query = 'select * from cache.persons where "staffId"=' + id +";";
         return new Promise((resolve, reject) => {
             client.execute(query, (err, result) => {
                 if(!err){
@@ -116,38 +118,41 @@ module.exports = {
     find(params){
         query="select * from cache.persons where ";
         if (params.hasOwnProperty('staffId')) {
-            query+=" AND staffID="+params.staffId;
+            query+=' AND "staffId"='+params.staffId;
         }
         if (params.hasOwnProperty('firstName')) {
-            query+=" AND firstName='"+params.firstName+"'";
+            query+=' AND "firstName"=\''+params.firstName+"'"
         }
         if (params.hasOwnProperty('lastName')) {
-            query+=" AND lastName='"+params.lastName+"'";
+            query+=' AND "lastName"=\''+params.lastName+"'";
         }
         if (params.hasOwnProperty('nickname')) {
-            query+=" AND nickname='"+params.nickname+"'";
+            query+=' AND "nickname"=\''+params.nickname+"'";
         }
         if (params.hasOwnProperty('birthDate')) {
-            query+=" AND birthDate='"+params.birthDate+"'";
+            query+=' AND "birthDate"=\''+params.birthDate+"'";
+        }
+        if (params.hasOwnProperty('creationDate')) {
+            query+=' AND "creationDate"=\''+params.creationDate+"'";
         }
         if (params.hasOwnProperty('position')) {
-            query+=" AND position='"+params.position+"'";
+            query+=' AND "position"=\''+params.position+"'";
         }
         if (params.hasOwnProperty('bossId')) {
             if(params.bossId==null)
                 i=0;
                 //query+=" AND bossId="+params.bossId;
             else
-                query+=" AND bossId='"+params.bossId+"'";
+                query+=' AND "bossId"=\''+params.bossId+"'";
         }
         if (params.hasOwnProperty('isActive')) {
-            query+=" AND isActive="+params.isActive;
+            query+=' AND "isActive"='+params.isActive;
         }
         if (params.hasOwnProperty('salary')) {
-            query+=" AND salary="+params.salary;
+            query+=' AND "salary"='+params.salary;
         }
         if (params.hasOwnProperty('description')) {
-            query+=" AND description='"+params.description+"'";
+            query+=' AND "description"=\''+params.description+"'";
         }
         query+=" allow filtering;";
         query=query.replace("AND","");
@@ -165,39 +170,42 @@ module.exports = {
     },
     update(id,params){
         query="update cache.persons ";
-        if (params.hasOwnProperty('firstName')) {
-            query+=", firstName='"+params.firstName+"'";
+        if (params.hasOwnProperty("firstName")) {
+            query+=', "firstName"=\''+params.firstName+"'";
         }
         if (params.hasOwnProperty('lastName')) {
-            query+=", lastName='"+params.lastName+"'";
+            query+=', "lastName"=\''+params.lastName+"'";
         }
         if (params.hasOwnProperty('nickname')) {
-            query+=", nickname='"+params.nickname+"'";
+            query+=', "nickname"=\''+params.nickname+"'";
         }
         if (params.hasOwnProperty('birthDate')) {
-            query+=", birthDate='"+params.birthDate+"'";
+            query+=', "birthDate"=\''+params.birthDate+"'";
+        }
+        if (params.hasOwnProperty('creationDate')) {
+            query+=', "creationDate"=\''+params.creationDate+"'";
         }
         if (params.hasOwnProperty('position')) {
-            query+=", position='"+params.position+"'";
+            query+=', "position"=\''+params.position+"'";
         }
         if (params.hasOwnProperty('bossId')) {
             if(params.bossId==null)
                 i=0;
             //query+=" AND bossId="+params.bossId;
             else
-                query+=", bossId='"+params.bossId+"'";
+                query+=', "bossId"=\''+params.bossId+"'";
         }
         if (params.hasOwnProperty('isActive')) {
-            query+=", isActive="+params.isActive;
+            query+=', "isActive"='+params.isActive;
         }
         if (params.hasOwnProperty('salary')) {
-            query+=", salary="+params.salary;
+            query+=', "salary"='+params.salary;
         }
         if (params.hasOwnProperty('description')) {
-            query+=", description='"+params.description+"'";
+            query+=', "description"=\''+params.description+"'";
         }
         query=query.replace(","," SET ");
-        query+=" where staffid="+id+";";
+        query+=' where "staffId"='+id+";";
         console.log(query);
         return new Promise((resolve, reject) => {
             client.execute(query, (err, result) => {
